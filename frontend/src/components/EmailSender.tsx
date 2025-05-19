@@ -14,6 +14,23 @@ interface EmailData {
   body: string;
 }
 
+interface ApiPayload {
+  body: string,
+  recipient: string,
+  subject: string
+}
+
+interface ApiSuccesResponse {
+  success: boolean,
+  details: string,
+  email: ApiPayload,
+  id: string
+}
+
+interface ApiErrorResponse {
+  details: string
+}
+
 const EmailSender: React.FC = () => {
   const [emailData, setEmailData] = useState<EmailData>({
     sender: '',
@@ -39,19 +56,28 @@ const EmailSender: React.FC = () => {
     }
 
     setIsLoading(true);
+
+    const apiPayload: ApiPayload = {
+      recipient: emailData.sender,
+      subject: emailData.subject,
+      body: emailData.body
+    };
     
     try {
       // Aquí realizamos la petición POST a la API externa
-      const response = await fetch('https://tu-api-externa.com/send-email', {
+      const response = await fetch('http://localhost:8000/notifications/email', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(emailData),
+        body: JSON.stringify(apiPayload),
       });
 
+      const responseData = await response.json();
+
       if (!response.ok) {
-        throw new Error('Error al enviar el correo');
+        const errorDetails = (responseData as ApiErrorResponse)?.details || 'Error al enviar el correo desde el servidor';
+        throw new Error(errorDetails);
       }
 
       const data = await response.json();
