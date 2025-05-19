@@ -20,7 +20,7 @@ interface ApiPayload {
   subject: string
 }
 
-interface ApiSuccesResponse {
+interface ApiSuccessResponse {
   success: boolean,
   details: string,
   email: ApiPayload,
@@ -80,16 +80,20 @@ const EmailSender: React.FC = () => {
         throw new Error(errorDetails);
       }
 
-      const data = await response.json();
-      toast.success('Correo enviado correctamente');
-      console.log('Respuesta:', data);
-      
-      // Opcional: limpiar el formulario después de enviar
-      setEmailData({
-        sender: '',
-        subject: '',
-        body: ''
-      });
+      const successData = responseData as ApiSuccessResponse;
+      if (successData.success) {
+        toast.success(`${successData.details} (ID: ${successData.id})`);
+        // Opcional: limpiar el formulario después de enviar
+        setEmailData({
+          sender: '',
+          subject: '',
+          body: ''
+        });
+      } else {
+        // En caso de que response.ok sea true, pero success sea false (si tu API lo permite)
+        const errorDetails = successData.details || 'El servidor indicó un fallo al procesar la solicitud.';
+        throw new Error(errorDetails);
+      }
       
     } catch (error) {
       console.error('Error:', error);
